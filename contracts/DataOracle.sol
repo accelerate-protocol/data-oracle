@@ -53,9 +53,4 @@ contract DataOracle is Ownable, AccessControl {
     function getHistoricalCount() public view returns (uint256) {
         return historicalData.length;
     }
-
-    // Function to get all historical data
-    function getAllHistoricalData() public view returns (TimestampedData[] memory) {
-        return historicalData;
-    }
 }
