@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
@@ -10,8 +10,8 @@ contract DataOracle is Ownable, AccessControl {
 
     // Struct to hold timestamped data
     struct TimestampedData {
-        bytes data;
         uint256 timestamp;
+        uint256 data;
     }
 
     // Storage for current data
@@ -27,26 +27,25 @@ contract DataOracle is Ownable, AccessControl {
     }
 
     // Function for admin to set timestamped data
-    function setData(bytes memory _data) public onlyRole(DATA_UPDATER_ROLE) {
-        // Store current data as historical record
-        historicalData.push(lastData);
-        
+    function setData(uint256 _data) public onlyRole(DATA_UPDATER_ROLE) {
         // Update current data
         lastData = TimestampedData({
-            data: _data,
-            timestamp: block.timestamp
+            timestamp: block.timestamp,
+            data: _data
         });
+        // Store current data as historical record
+        historicalData.push(lastData);
     }
 
     // Function for users to get the last updated data
-    function getLastUpdate() public view returns (bytes memory, uint256) {
-        return (lastData.data, lastData.timestamp);
+    function getLastUpdate() public view returns (uint256, uint256) {
+        return (lastData.timestamp, lastData.data);
     }
 
     // Function to get historical data by index
-    function getHistoricalData(uint256 index) public view returns (bytes memory, uint256) {
+    function getHistoricalData(uint256 index) public view returns (uint256, uint256) {
         require(index < historicalData.length, "Index out of bounds");
-        return (historicalData[index].data, historicalData[index].timestamp);
+        return (historicalData[index].timestamp, historicalData[index].data);
     }
 
     // Function to get total historical records count

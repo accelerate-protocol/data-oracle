@@ -19,13 +19,13 @@ describe('DataOracle - Historical Functions', () => {
     const accounts = await viem.getWalletClients();
     [owner, user] = accounts;
     
-    // Deploy contract
-    const contract = await viem.deployContract('DataOracle', []);
-    dataOracle = contract;
     // Get clients
     walletClient = await viem.getWalletClient();
     publicClient = await viem.getPublicClient();
 
+    // Deploy contract
+    const contract = await viem.deployContract('DataOracle', []);
+    dataOracle = contract;
   });
 
   it('should store historical data correctly', async () => {
@@ -46,7 +46,7 @@ describe('DataOracle - Historical Functions', () => {
     await publicClient.waitForTransactionReceipt({ hash: tx2 });
     
     // Check current data
-    const [currentData, currentTimestamp] = await dataOracle.read.getLastUpdate();
+    const [currentTimestamp, currentData] = await dataOracle.read.getLastUpdate();
     assert.equal(currentData, testData2);
     
     // Verify historical data was stored
@@ -56,9 +56,9 @@ describe('DataOracle - Historical Functions', () => {
 
   it('should handle multiple data sets with proper timestamps', async () => {
     // Clear existing data and set multiple values
-    const testData1 = '0x61'; // "a" in hex
-    const testData2 = '0x62'; // "b" in hex
-    const testData3 = '0x63'; // "c" in hex
+    const testData1 = 0x61n; // "a" in hex
+    const testData2 = 0x62n; // "b" in hex
+    const testData3 = 0x63n; // "c" in hex
     
     // Set first data
     const tx1 = await dataOracle.write.setData([testData1], {
@@ -79,14 +79,14 @@ describe('DataOracle - Historical Functions', () => {
     await publicClient.waitForTransactionReceipt({ hash: tx3 });
     
     // Get current data
-    const [currentData, currentTimestamp] = await dataOracle.read.getLastUpdate();
-    assert.equal(currentData, testData3);
+    const [currentTimestamp, currentData] = await dataOracle.read.getLastUpdate();
     assert.typeOf(currentTimestamp, 'bigint');
+    assert.equal(currentData, testData3);
   });
 
   it('should prevent unauthorized access to historical functions', async () => {
     // Try to set data with non-owner account - should fail
-    const testData = '0x74657374'; // "test" in hex
+    const testData = 0x74657374n; // "test" in hex
     
     try {
       await dataOracle.write.setData([testData], {
@@ -99,8 +99,8 @@ describe('DataOracle - Historical Functions', () => {
   });
 
   it('should maintain data integrity across multiple updates', async () => {
-    const testData1 = '0x616263'; // "abc" in hex
-    const testData2 = '0x646566'; // "def" in hex
+    const testData1 = 0x616263n; // "abc" in hex
+    const testData2 = 0x646566n; // "def" in hex
     
     // Set first data
     const tx1 = await dataOracle.write.setData([testData1], {
@@ -108,7 +108,7 @@ describe('DataOracle - Historical Functions', () => {
     });
     await publicClient.waitForTransactionReceipt({ hash: tx1 });
     
-    const [data1, timestamp1] = await dataOracle.read.getLastUpdate();
+    const [timestamp1, data1] = await dataOracle.read.getLastUpdate();
     
     // Set second data
     const tx2 = await dataOracle.write.setData([testData2], {
@@ -116,7 +116,7 @@ describe('DataOracle - Historical Functions', () => {
     });
     await publicClient.waitForTransactionReceipt({ hash: tx2 });
     
-    const [data2, timestamp2] = await dataOracle.read.getLastUpdate();
+    const [timestamp2, data2] = await dataOracle.read.getLastUpdate();
     
     // Verify data integrity
     assert.equal(data1, testData1);
@@ -125,49 +125,43 @@ describe('DataOracle - Historical Functions', () => {
     assert.typeOf(timestamp2, 'bigint');
   });
 
-  it('should maintain data integrity through multiple operations', async () => {
+  it('test historical', async () => {
     // Clear any existing data and set fresh data
-    const testData1 = '0x68656c6c6f'; // "hello"
-    const testData2 = '0x776f726c64'; // "world"
-    const testData3 = '0x616263'; // "abc"
+    // Deploy contract
+    const contract = await viem.deployContract('DataOracle', []);
+
+    const testData = [ 0x68656c6c6fn, // "hello"
+      0x776f726c64n, // "world"
+      0x616263n
+    ] // "abc"
     
-    await dataOracle.write.setData([testData1], {
-      account: owner.account.address
-    });
-    
-    await dataOracle.write.setData([testData2], {
-      account: owner.account.address
-    });
-    
-    await dataOracle.write.setData([testData3], {
-      account: owner.account.address
-    });
-    
-    const [data, timestamp] = await dataOracle.read.getHistoricalData([1n])
-    assert.equal(data, testData1);
-    assert.typeOf(timestamp, 'bigint');
-  });
- 
-  it('should prevent out of bounds to historical functions', async () => {    
+    for(const element of [0n, 1n, 2n]) {
+      await contract.write.setData([testData[element]], {
+        account: owner.account.address
+      });
+    }
+
+    for(const element of [0n, 1n, 2n]) {
+      const [timestamp, data] = await contract.read.getHistoricalData([element]);
+      assert.equal(data, testData[element]);
+      assert.typeOf(timestamp, 'bigint');
+    }
+  })
+
+  it('should prevent out of bounds to historical functions', async () => {
     try {
-      // Clear any existing data and set fresh data
-      const testData1 = '0x68656c6c6f'; // "hello"
-      const testData2 = '0x776f726c64'; // "world"
-      const testData3 = '0x616263'; // "abc"
-    
-      await dataOracle.write.setData([testData1], {
-      	account: owner.account.address
-      });		      
-    
-      await dataOracle.write.setData([testData2], {
-        account: owner.account.address
-      });
-    
-      await dataOracle.write.setData([testData3], {
-        account: owner.account.address
-      });
-    
-      const [data, timestamp] = await dataOracle.read.getHistoricalData([5n])
+      const testData = [ 0x68656c6c6fn, // "hello"
+        0x776f726c64n, // "world"
+        0x616263n
+      ] // "abc"
+
+      await Promise.all([0n, 1n, 2n].map(async(element) => {
+        await dataOracle.write.setData([testData[element]], {
+          account: owner.account.address
+        })
+       }));
+
+      const [data, timestamp] = await dataOracle.read.getHistoricalData([3n])
       assert.fail('Should have reverted');
     } catch (error) {
       // Expected to fail
