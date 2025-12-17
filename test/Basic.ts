@@ -1,9 +1,10 @@
 // test/DataOracle.test.js
-const { describe, it, before } = require('node:test');
-const { assert } = require('chai');
-const { viem } = require('hardhat');
-const { encodeFunctionData, parseEther } = require('viem');
+import { before, describe, it } from "node:test";
+import { assert } from 'chai';
+import hre from "hardhat";
+import { encodeFunctionData, parseEther } from 'viem';
 
+const { viem, networkHelpers } = await hre.network.connect();
 describe('DataOracle', () => {
   let dataOracle;
   let owner;
