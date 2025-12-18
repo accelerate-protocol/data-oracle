@@ -4,6 +4,8 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
+error IndexOutOfBounds();
+
 contract DataOracle is Ownable, AccessControl {
     // Role for data updater
     bytes32 public constant DATA_UPDATER_ROLE = keccak256("DATA_UPDATER_ROLE");
@@ -44,7 +46,7 @@ contract DataOracle is Ownable, AccessControl {
 
     // Function to get historical data by index
     function getHistoricalData(uint256 index) public view returns (uint256, uint256) {
-        require(index < historicalData.length, "Index out of bounds");
+        require(index < historicalData.length, IndexOutOfBounds());
         return (historicalData[index].timestamp, historicalData[index].data);
     }
 
