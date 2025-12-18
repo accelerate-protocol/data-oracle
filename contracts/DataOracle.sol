@@ -10,6 +10,9 @@ contract DataOracle is Ownable, AccessControl {
     // Role for data updater
     bytes32 public constant DATA_UPDATER_ROLE = keccak256("DATA_UPDATER_ROLE");
 
+    // Event triggered when data is updated
+    event DataUpdated(uint256 timestamp, uint256 data, uint256 historicalCount);
+
     // Struct to hold timestamped data
     struct TimestampedData {
         uint256 timestamp;
@@ -39,6 +42,9 @@ contract DataOracle is Ownable, AccessControl {
         // Store current data as historical record
         historicalData[historicalCount] = lastData;
         historicalCount++;
+
+        // Emit event when data is updated
+        emit DataUpdated(block.timestamp, _data, historicalCount);
     }
 
     // Function for users to get the last updated data
