@@ -6,12 +6,12 @@ defilama.
 
 # To compile (requires node 22)
 
-npm install
-npx hardhat compile
-npx hardhat test
+* npm install
+* npx hardhat compile
+* npx hardhat test
 
 # Also there is a docker image that runs the regression tests
 
-docker compose build
-docker compose up
+* docker compose build
+* docker compose up
 
