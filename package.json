@@ -31,7 +31,9 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.4.0",
-    "chai": "^6.2.1"
+    "chai": "^6.2.1",
+    "solhint": "^6.0.1",
+    "sollint": "^0.0.0"
   },
   "type": "module"
 }
