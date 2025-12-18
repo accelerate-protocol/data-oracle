@@ -19,8 +19,9 @@ contract DataOracle is Ownable, AccessControl {
     // Storage for current data
     TimestampedData private lastData;
 
-    // Storage for historical data
-    TimestampedData[] private historicalData;
+    // Storage for historical data using mapping and counter
+    mapping(uint256 => TimestampedData) private historicalData;
+    uint256 private historicalCount;
 
     // Constructor
     constructor() Ownable(msg.sender) {
@@ -36,7 +37,8 @@ contract DataOracle is Ownable, AccessControl {
             data: _data
         });
         // Store current data as historical record
-        historicalData.push(lastData);
+        historicalData[historicalCount] = lastData;
+        historicalCount++;
     }
 
     // Function for users to get the last updated data
@@ -46,12 +48,12 @@ contract DataOracle is Ownable, AccessControl {
 
     // Function to get historical data by index
     function getHistoricalData(uint256 index) public view returns (uint256, uint256) {
-        require(index < historicalData.length, IndexOutOfBounds());
+        require(index < historicalCount, IndexOutOfBounds());
         return (historicalData[index].timestamp, historicalData[index].data);
     }
 
     // Function to get total historical records count
     function getHistoricalCount() public view returns (uint256) {
-        return historicalData.length;
+        return historicalCount;
     }
 }
