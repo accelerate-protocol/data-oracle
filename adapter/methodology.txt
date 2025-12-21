@@ -1,0 +1,15 @@
+The AXC Grow Token will consist of two tokens:
+
+- a permissioned token which can only be transfered between white
+  listed addresses - each GROW share will correspond to a permissioned
+  token and permissioned tokens will be burned and minted to match the
+  number of GROW shares outstanding. 
+
+- a permissionless token which will be a vault.  The vault will
+  contain the permissioned tokens which are being held by the
+  custodian.  The number of permissioned tokens being held by the
+  vault can be viewed by looking the tokens held by the vault.
+
+- The TVL of the protocol consists of
+
+(permissioned tokens) * (price of the permissionless tokens)
