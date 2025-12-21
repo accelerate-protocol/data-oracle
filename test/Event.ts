@@ -9,7 +9,6 @@ const { viem, networkHelpers } = await hre.network.connect();
 
 
 describe('DataOracle - Events', () => {
-  let dataOracle;
   let owner;
   let user;
   let walletClient;
@@ -19,18 +18,15 @@ describe('DataOracle - Events', () => {
     // Get accounts
     const accounts = await viem.getWalletClients();
     [owner, user] = accounts;
-    
     // Get clients
     walletClient = await viem.getWalletClient();
     publicClient = await viem.getPublicClient();
-
-    // Deploy contract
-    const contract = await viem.deployContract('DataOracle', []);
-    dataOracle = contract;
   });
 
   it("should emit DataUpdated event when setData is called", async function () {
     const testData = 12345;
+    // Deploy contract
+    const dataOracle = await viem.deployContract('DataOracle', []);
     await viem.assertions.emitWithArgs(
       dataOracle.write.setData([testData]),
       dataOracle,
