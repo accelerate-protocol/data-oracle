@@ -4,4 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: npx hardhat test
+    command: ./scripts/initialize-testnet.sh
+    ports:
+      - 8545:8545
+
