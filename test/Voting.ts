@@ -18,6 +18,10 @@ describe("DataOracle Voting Mechanism", function () {
     // Deploy contract
     const contract = await viem.deployContract('DataOracle', []);
     dataOracle = contract;
+    await dataOracle.write.initialize([], {
+       'account': owner.account.address
+    });
+
     // Set threshold to 2 for testing
     await dataOracle.write.setThreshold([2], {
        account: owner.account.address

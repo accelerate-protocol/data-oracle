@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 error AlreadyVoted(address);
 error InvalidThreshold();
@@ -18,7 +18,7 @@ error InvalidThreshold();
  *      before the threshold is reached the vote is invalid and the
  *      vote restarted.
  */
-contract DataOracle is Ownable, AccessControl {
+contract DataOracle is  Initializable, AccessControlUpgradeable {
     /**
      * @notice Role for data updater
      */
@@ -116,23 +116,23 @@ contract DataOracle is Ownable, AccessControl {
     uint256 public currentVoteValue;
 
     /**
-     * @notice Constructor to initialize the contract.  Grants the
+     * @notice initialize the contract.  Grants the
      * deployer the DEFAULT_ADMIN_ROLE but not the DATA_UPDATER_ROLE.
      * Sets the default threshold to 1.
      */
-    constructor() Ownable(msg.sender) {
+    function initialize() public initializer {
+        __AccessControl_init();
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(DATA_UPDATER_ROLE, msg.sender);
         threshold = 1;
     }
-
     /**
      * @notice Sets the threshold for the number of users required to
      * update the data.  Only the owner can call this function.
      * Changing threshold resets votes.
      * @param _threshold The new threshold value.
      */
-    function setThreshold(uint256 _threshold) public onlyOwner {
+    function setThreshold(uint256 _threshold) public onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_threshold > 0, InvalidThreshold());
         threshold = _threshold;
 	resetVotes();
