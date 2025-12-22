@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
 error IndexOutOfBounds();
 error AlreadyVoted(address);
@@ -10,46 +10,61 @@ error InvalidThreshold();
 
 /**
  * @title DataOracle
- * @dev A contract to store and retrieve timestamped data with historical records.
- *      To maintain data integrity this system creates a voting mechanism.  To change
- *      data there must be N votes that agree on the new data.  If any voter tries
- *      to set the data to a different value or attempts to double vote before the threshold
- *      is reached the vote is invalid and the vote restarted.
+ * @author AXC
+ * @notice A contract to store and retrieve timestamped data with
+ *      historical records.  To maintain data integrity this system
+ *      creates a voting mechanism.  To change data there must be N
+ *      votes that agree on the new data.  If any voter tries to set
+ *      the data to a different value or attempts to double vote
+ *      before the threshold is reached the vote is invalid and the
+ *      vote restarted.
  */
 contract DataOracle is Ownable, AccessControl {
-    // Role for data updater
+    /**
+     * @notice Role for data updater
+     */
     bytes32 public constant DATA_UPDATER_ROLE = keccak256("DATA_UPDATER_ROLE");
 
     /**
-     * @dev Emitted when data is updated.
+     * @notice Emitted when data is updated.
      * @param timestamp The timestamp of the update.
      * @param data The data that was updated.
      * @param historicalCount The total count of historical records after the update.
      */
-    event DataUpdated(uint256 timestamp, uint256 data, uint256 historicalCount);
-
-   /**
-     * @dev Emitted when vote is valid vote
-     * @param voter - voter
-     * @param data - new data
-     * @param proposal - proposal numbner
-     * @param voteCount - vote count
-     */
-    event VoteCast(address voter, uint256 data, uint256 proposal, uint256 voteCount);
-
-   /**
-     * @dev Emitted when vote is reset.
-     * @param voter - voter
-     * @param new_data - new data
-     * @param old_data - the old data
-     * @param proposal - proposal number
-     * @param voteCount - vote count
-
-     */
-    event VoteFailed(address voter, uint256 new_data, uint256 old_data, uint256 proposal, uint256 voteCount);
+    event DataUpdated(uint256 indexed timestamp,
+		      uint256 indexed data,
+		      uint256 indexed historicalCount
+		     );
 
     /**
-     * @dev Struct to hold timestamped data.
+     * @notice Emitted when vote is valid vote
+     * @param voter - voter
+     * @param proposal - proposal numbner
+     * @param voteCount - vote count
+     * @param data - new data
+     */
+    event VoteCast(address indexed voter,
+		   uint256 indexed proposal,
+		   uint256 indexed voteCount,
+		   uint256 data);
+
+    /**
+     * @notice Emitted when vote is reset.
+     * @param voter - voter
+     * @param proposal - proposal number
+     * @param voteCount - vote count
+     * @param newData - new data
+     * @param oldData - the old data
+     */
+    event VoteFailed(address indexed voter,
+		     uint256 indexed proposal,
+		     uint256 indexed voteCount,
+		     uint256 newData,
+		     uint256 oldData
+		    );
+
+    /**
+     * @notice Struct to hold timestamped data.
      * @param timestamp The timestamp of the data.
      * @param data The data value.
      */
@@ -67,19 +82,31 @@ contract DataOracle is Ownable, AccessControl {
 
     uint256 private proposal;
 
-    // Threshold for number of users required to set data
+    /**
+     * @notice Threshold for number of users required to set data
+     */
     uint256 public threshold;
 
-    // Storage to track which users have called setData (scalar tracking)
-    mapping(uint=>mapping(address => bool)) public userVotes;
+    /**
+     * @notice Storage to track which users have called setData
+     * (scalar tracking)
+     */
+
+    mapping(uint256=>mapping(address => bool)) public userVotes;
+
+    /**
+     * @notice current vote count
+     */
     uint256 public voteCount;
 
-    // Storage for the current value being voted on
+    /**
+     * @notice Storage for the current value being voted on
+     */
     uint256 public currentVoteValue;
 
     /**
-     * @dev Constructor to initialize the contract.
-     * Grants the deployer the DEFAULT_ADMIN_ROLE but not the DATA_UPDATER_ROLE.
+     * @notice Constructor to initialize the contract.  Grants the
+     * deployer the DEFAULT_ADMIN_ROLE but not the DATA_UPDATER_ROLE.
      * Sets the default threshold to 1.
      */
     constructor() Ownable(msg.sender) {
@@ -89,8 +116,9 @@ contract DataOracle is Ownable, AccessControl {
     }
 
     /**
-     * @dev Sets the threshold for the number of users required to update the data.
-     * Only the owner can call this function.  Changing threshold resets votes.
+     * @notice Sets the threshold for the number of users required to
+     * update the data.  Only the owner can call this function.
+     * Changing threshold resets votes.
      * @param _threshold The new threshold value.
      */
     function setThreshold(uint256 _threshold) public onlyOwner {
@@ -100,8 +128,9 @@ contract DataOracle is Ownable, AccessControl {
     }
 
     /**
-     * @dev Sets the timestamped data and stores it as a historical record.
-     * Only users with the DATA_UPDATER_ROLE can call this function.
+     * @notice Sets the timestamped data and stores it as a historical
+     * record.  Only users with the DATA_UPDATER_ROLE can call this
+     * function.
      * @param _data The data to be set.
      */
 
@@ -110,7 +139,8 @@ contract DataOracle is Ownable, AccessControl {
         // If this is the first vote for a new value, reset the vote tracking
         if (userVotes[proposal][msg.sender] ||
 	    (voteCount !=0 && currentVoteValue != _data)) {
-	    emit VoteFailed(msg.sender, _data, currentVoteValue, proposal, voteCount);
+	    emit VoteFailed(msg.sender,  proposal, voteCount,
+			   _data, currentVoteValue);
             resetVotes();
 	    return;
         }
@@ -118,8 +148,8 @@ contract DataOracle is Ownable, AccessControl {
         // Record the user's vote
         currentVoteValue = _data;
         userVotes[proposal][msg.sender] = true;
-        voteCount++;
-	emit VoteCast(msg.sender, currentVoteValue, proposal, voteCount);
+        ++voteCount;
+	emit VoteCast(msg.sender, proposal, voteCount, currentVoteValue);
 
         // If threshold not met, return
         if (voteCount < threshold) {
@@ -133,7 +163,7 @@ contract DataOracle is Ownable, AccessControl {
         });
         // Store current data as historical record
         historicalData[historicalCount] = lastData;
-        historicalCount++;
+        ++historicalCount;
 
         // Emit event when data is updated
         emit DataUpdated(block.timestamp, _data, historicalCount);
@@ -143,17 +173,17 @@ contract DataOracle is Ownable, AccessControl {
     }
 
     /**
-     * @dev Resets the votes
+     * @notice Resets the votes
      */
     function resetVotes() internal {
         // Reset votes for the current value
-        proposal++;
+        ++proposal;
         voteCount = 0;
 
     }
 
     /**
-     * @dev Returns the last updated data.
+     * @notice Returns the last updated data.
      * @return timestamp The timestamp of the last update.
      * @return data The data value of the last update.
      */
@@ -162,7 +192,7 @@ contract DataOracle is Ownable, AccessControl {
     }
 
     /**
-     * @dev Returns historical data by index.
+     * @notice Returns historical data by index.
      * @param index The index of the historical record to retrieve.
      * @return timestamp The timestamp of the historical record.
      * @return data The data value of the historical record.
@@ -173,7 +203,7 @@ contract DataOracle is Ownable, AccessControl {
     }
 
     /**
-     * @dev Returns the total number of historical records.
+     * @notice Returns the total number of historical records.
      * @return The count of historical records.
      */
     function getHistoricalCount() public view returns (uint256) {
