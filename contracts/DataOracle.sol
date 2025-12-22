@@ -5,12 +5,17 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
 error IndexOutOfBounds();
+error AlreadyVoted(address);
+error InvalidThreshold();
 
 /**
  * @title DataOracle
  * @dev A contract to store and retrieve timestamped data with historical records.
+ *      To maintain data integrity this system creates a voting mechanism.  To change
+ *      data there must be N votes that agree on the new data.  If any voter tries
+ *      to set the data to a different value or attempts to double vote before the threshold
+ *      is reached the vote is invalid and the vote restarted.
  */
-
 contract DataOracle is Ownable, AccessControl {
     // Role for data updater
     bytes32 public constant DATA_UPDATER_ROLE = keccak256("DATA_UPDATER_ROLE");
@@ -22,6 +27,26 @@ contract DataOracle is Ownable, AccessControl {
      * @param historicalCount The total count of historical records after the update.
      */
     event DataUpdated(uint256 timestamp, uint256 data, uint256 historicalCount);
+
+   /**
+     * @dev Emitted when vote is valid vote
+     * @param voter - voter
+     * @param data - new data
+     * @param proposal - proposal numbner
+     * @param voteCount - vote count
+     */
+    event VoteCast(address voter, uint256 data, uint256 proposal, uint256 voteCount);
+
+   /**
+     * @dev Emitted when vote is reset.
+     * @param voter - voter
+     * @param new_data - new data
+     * @param old_data - the old data
+     * @param proposal - proposal number
+     * @param voteCount - vote count
+
+     */
+    event VoteFailed(address voter, uint256 new_data, uint256 old_data, uint256 proposal, uint256 voteCount);
 
     /**
      * @dev Struct to hold timestamped data.
@@ -40,13 +65,38 @@ contract DataOracle is Ownable, AccessControl {
     mapping(uint256 => TimestampedData) private historicalData;
     uint256 private historicalCount;
 
+    uint256 private proposal;
+
+    // Threshold for number of users required to set data
+    uint256 public threshold;
+
+    // Storage to track which users have called setData (scalar tracking)
+    mapping(uint=>mapping(address => bool)) public userVotes;
+    uint256 public voteCount;
+
+    // Storage for the current value being voted on
+    uint256 public currentVoteValue;
+
     /**
      * @dev Constructor to initialize the contract.
-     * Grants the deployer the DEFAULT_ADMIN_ROLE and DATA_UPDATER_ROLE.
+     * Grants the deployer the DEFAULT_ADMIN_ROLE but not the DATA_UPDATER_ROLE.
+     * Sets the default threshold to 1.
      */
     constructor() Ownable(msg.sender) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(DATA_UPDATER_ROLE, msg.sender);
+        threshold = 1;
+    }
+
+    /**
+     * @dev Sets the threshold for the number of users required to update the data.
+     * Only the owner can call this function.  Changing threshold resets votes.
+     * @param _threshold The new threshold value.
+     */
+    function setThreshold(uint256 _threshold) public onlyOwner {
+        require(_threshold > 0, InvalidThreshold());
+        threshold = _threshold;
+	resetVotes();
     }
 
     /**
@@ -54,7 +104,28 @@ contract DataOracle is Ownable, AccessControl {
      * Only users with the DATA_UPDATER_ROLE can call this function.
      * @param _data The data to be set.
      */
+
     function setData(uint256 _data) public onlyRole(DATA_UPDATER_ROLE) {
+        // If user has already voted, or
+        // If this is the first vote for a new value, reset the vote tracking
+        if (userVotes[proposal][msg.sender] ||
+	    (voteCount !=0 && currentVoteValue != _data)) {
+	    emit VoteFailed(msg.sender, _data, currentVoteValue, proposal, voteCount);
+            resetVotes();
+	    return;
+        }
+
+        // Record the user's vote
+        currentVoteValue = _data;
+        userVotes[proposal][msg.sender] = true;
+        voteCount++;
+	emit VoteCast(msg.sender, currentVoteValue, proposal, voteCount);
+
+        // If threshold not met, return
+        if (voteCount < threshold) {
+	    return;
+        }
+
         // Update current data
         lastData = TimestampedData({
             timestamp: block.timestamp,
@@ -66,6 +137,19 @@ contract DataOracle is Ownable, AccessControl {
 
         // Emit event when data is updated
         emit DataUpdated(block.timestamp, _data, historicalCount);
+
+        // Reset votes
+        resetVotes();
+    }
+
+    /**
+     * @dev Resets the votes
+     */
+    function resetVotes() internal {
+        // Reset votes for the current value
+        proposal++;
+        voteCount = 0;
+
     }
 
     /**
