@@ -11,26 +11,24 @@ describe('DataOracle - Historical Functions', () => {
   let dataOracle;
   let owner;
   let user;
-  let walletClient;
   let publicClient;
 
   before(async () => {
     // Get accounts
     const accounts = await viem.getWalletClients();
     [owner, user] = accounts;
-    
-    // Get clients
-    walletClient = await viem.getWalletClient();
-    publicClient = await viem.getPublicClient();
 
     // Deploy contract
-    const contract = await viem.deployContract('DataOracle', []);
+    const contract = await viem.deployContract('DataOracle', [], {
+       client: owner
+    });
     dataOracle = contract;
+    publicClient = await viem.getPublicClient();
   });
 
   it('should store historical data correctly', async () => {
     // Set first data
-    const testData1 = '0x68656c6c6f'; // "hello" in hex
+    const testData1 = 0x68656c6c6fn; // "hello" in hex
     const tx1 = await dataOracle.write.setData([testData1], {
       account: owner.account.address
     });
