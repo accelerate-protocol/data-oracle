@@ -4,7 +4,6 @@ pragma solidity ^0.8.24;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
-error IndexOutOfBounds();
 error AlreadyVoted(address);
 error InvalidThreshold();
 
@@ -73,14 +72,27 @@ contract DataOracle is Ownable, AccessControl {
         uint256 data;
     }
 
-    // Storage for current data
-    TimestampedData private lastData;
+    /**
+     * @notice Storage for current data
+     */
 
-    // Storage for historical data using mapping and counter
-    mapping(uint256 => TimestampedData) private historicalData;
-    uint256 private historicalCount;
+    TimestampedData public lastData;
 
-    uint256 private proposal;
+    /**
+     * @notice Storage for historical data using mapping and counter
+     */
+
+    mapping(uint256 => TimestampedData) public historicalData;
+
+    /**
+     * @notice Count of data histories
+     */
+    uint256 public historicalCount;
+
+    /**
+     * @notice Count of proposals
+     */
+    uint256 public proposalCount;
 
     /**
      * @notice Threshold for number of users required to set data
@@ -89,7 +101,6 @@ contract DataOracle is Ownable, AccessControl {
 
     /**
      * @notice Storage to track which users have called setData
-     * (scalar tracking)
      */
 
     mapping(uint256=>mapping(address => bool)) public userVotes;
@@ -137,9 +148,9 @@ contract DataOracle is Ownable, AccessControl {
     function setData(uint256 _data) public onlyRole(DATA_UPDATER_ROLE) {
         // If user has already voted, or
         // If this is the first vote for a new value, reset the vote tracking
-        if (userVotes[proposal][msg.sender] ||
+        if (userVotes[proposalCount][msg.sender] ||
 	    (voteCount !=0 && currentVoteValue != _data)) {
-	    emit VoteFailed(msg.sender,  proposal, voteCount,
+	    emit VoteFailed(msg.sender,  proposalCount, voteCount,
 			   _data, currentVoteValue);
             resetVotes();
 	    return;
@@ -147,9 +158,9 @@ contract DataOracle is Ownable, AccessControl {
 
         // Record the user's vote
         currentVoteValue = _data;
-        userVotes[proposal][msg.sender] = true;
+        userVotes[proposalCount][msg.sender] = true;
         ++voteCount;
-	emit VoteCast(msg.sender, proposal, voteCount, currentVoteValue);
+	emit VoteCast(msg.sender, proposalCount, voteCount, currentVoteValue);
 
         // If threshold not met, return
         if (voteCount < threshold) {
@@ -177,7 +188,7 @@ contract DataOracle is Ownable, AccessControl {
      */
     function resetVotes() internal {
         // Reset votes for the current value
-        ++proposal;
+        ++proposalCount;
         voteCount = 0;
 
     }
@@ -189,24 +200,5 @@ contract DataOracle is Ownable, AccessControl {
      */
     function getLastUpdate() public view returns (uint256, uint256) {
         return (lastData.timestamp, lastData.data);
-    }
-
-    /**
-     * @notice Returns historical data by index.
-     * @param index The index of the historical record to retrieve.
-     * @return timestamp The timestamp of the historical record.
-     * @return data The data value of the historical record.
-     */
-    function getHistoricalData(uint256 index) public view returns (uint256, uint256) {
-        require(index < historicalCount, IndexOutOfBounds());
-        return (historicalData[index].timestamp, historicalData[index].data);
-    }
-
-    /**
-     * @notice Returns the total number of historical records.
-     * @return The count of historical records.
-     */
-    function getHistoricalCount() public view returns (uint256) {
-        return historicalCount;
     }
 }

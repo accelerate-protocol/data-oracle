@@ -48,7 +48,7 @@ describe('DataOracle - Historical Functions', () => {
     assert.equal(currentData, testData2);
     
     // Verify historical data was stored
-    const historicalCount = await dataOracle.read.getHistoricalCount();
+    const historicalCount = await dataOracle.read.historicalCount();
     assert.isAbove(Number(historicalCount), 0);
   });
 
@@ -140,32 +140,11 @@ describe('DataOracle - Historical Functions', () => {
     }
 
     for(const element of [0n, 1n, 2n]) {
-      const [timestamp, data] = await contract.read.getHistoricalData([element]);
+      const [timestamp, data] = await contract.read.historicalData([element]);
       assert.equal(data, testData[element]);
       assert.typeOf(timestamp, 'bigint');
     }
   })
-
-  it('should prevent out of bounds to historical functions', async () => {
-    try {
-      const testData = [ 0x68656c6c6fn, // "hello"
-        0x776f726c64n, // "world"
-        0x616263n
-      ] // "abc"
-
-      await Promise.all([0n, 1n, 2n].map(async(element) => {
-        await dataOracle.write.setData([testData[element]], {
-          account: owner.account.address
-        })
-       }));
-
-      const [data, timestamp] = await dataOracle.read.getHistoricalData([3n])
-      assert.fail('Should have reverted');
-    } catch (error) {
-      // Expected to fail
-    }
-  });
-
 });
 
 
