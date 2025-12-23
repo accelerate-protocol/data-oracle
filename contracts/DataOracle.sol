@@ -122,7 +122,7 @@ contract DataOracle is  Initializable, AccessControlUpgradeable {
      * @param _voters list of voters. may be modified with access control
      */
     function initialize(uint256 _threshold,
-        address[] calldata _voters) public initializer {
+        address[] calldata _voters) external initializer {
         __AccessControl_init();
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 	for (uint i = 0; i < _voters.length; i++) {
@@ -136,7 +136,7 @@ contract DataOracle is  Initializable, AccessControlUpgradeable {
      * Changing threshold resets votes.
      * @param _threshold The new threshold value.
      */
-    function setThreshold(uint256 _threshold) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setThreshold(uint256 _threshold) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_threshold > 0, InvalidThreshold());
         threshold = _threshold;
 	resetVotes();
@@ -149,7 +149,7 @@ contract DataOracle is  Initializable, AccessControlUpgradeable {
      * @param _data The data to be set.
      */
 
-    function setData(uint256 _data) public onlyRole(VOTER_ROLE) {
+    function setData(uint256 _data) external onlyRole(VOTER_ROLE) {
         // If user has already voted, or
         // If this is the first vote for a new value, reset the vote tracking
         if (userVotes[proposalCount][msg.sender] ||
@@ -202,14 +202,14 @@ contract DataOracle is  Initializable, AccessControlUpgradeable {
      * @return timestamp The timestamp of the last update.
      * @return data The data value of the last update.
      */
-    function getLastUpdate() public view returns (uint256, uint256) {
+    function getLastUpdate() external view returns (uint256, uint256) {
         return (lastData.timestamp, lastData.data);
     }
 
     /**
      * @notice Return version
      */
-    function version() public pure returns (string memory) {
+    function version() external pure returns (string memory) {
         return "20251205.0";
     }
 }
