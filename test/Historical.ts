@@ -23,7 +23,9 @@ describe('DataOracle - Historical Functions', () => {
        client: owner
     });
     dataOracle = contract;
-    await dataOracle.write.initialize([], {
+    await dataOracle.write.initialize([
+       1, [owner.account.address]
+    ], {
        'account': owner.account.address
     });
 
@@ -131,7 +133,9 @@ describe('DataOracle - Historical Functions', () => {
     // Clear any existing data and set fresh data
     // Deploy contract
     const contract = await viem.deployContract('DataOracle', []);
-    await contract.write.initialize([], {
+    await contract.write.initialize([
+      1, [owner.account.address]
+    ], {
        'account': owner.account.address
     });
 

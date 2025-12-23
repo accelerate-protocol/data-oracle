@@ -22,7 +22,7 @@ contract DataOracle is  Initializable, AccessControlUpgradeable {
     /**
      * @notice Role for data updater
      */
-    bytes32 public constant DATA_UPDATER_ROLE = keccak256("DATA_UPDATER_ROLE");
+    bytes32 public constant VOTER_ROLE = keccak256("VOTER_ROLE");
 
     /**
      * @notice Emitted when data is updated.
@@ -117,14 +117,18 @@ contract DataOracle is  Initializable, AccessControlUpgradeable {
 
     /**
      * @notice initialize the contract.  Grants the
-     * deployer the DEFAULT_ADMIN_ROLE but not the DATA_UPDATER_ROLE.
-     * Sets the default threshold to 1.
+     * deployer the DEFAULT_ADMIN_ROLE but not the VOTER_ROLE.
+     * @param _threshold Threshold value.
+     * @param _voters list of voters. may be modified with access control
      */
-    function initialize() public initializer {
+    function initialize(uint256 _threshold,
+        address[] calldata _voters) public initializer {
         __AccessControl_init();
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(DATA_UPDATER_ROLE, msg.sender);
-        threshold = 1;
+	for (uint i = 0; i < _voters.length; i++) {
+            _grantRole(VOTER_ROLE, _voters[i]);
+        }
+        threshold = _threshold;
     }
     /**
      * @notice Sets the threshold for the number of users required to
@@ -140,12 +144,12 @@ contract DataOracle is  Initializable, AccessControlUpgradeable {
 
     /**
      * @notice Sets the timestamped data and stores it as a historical
-     * record.  Only users with the DATA_UPDATER_ROLE can call this
+     * record.  Only users with the VOTER_ROLE can call this
      * function.
      * @param _data The data to be set.
      */
 
-    function setData(uint256 _data) public onlyRole(DATA_UPDATER_ROLE) {
+    function setData(uint256 _data) public onlyRole(VOTER_ROLE) {
         // If user has already voted, or
         // If this is the first vote for a new value, reset the vote tracking
         if (userVotes[proposalCount][msg.sender] ||

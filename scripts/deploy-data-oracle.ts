@@ -6,7 +6,7 @@ async function main() {
      "DataOracle"
   );
   console.log("Deployed contract address:", token.address);
-  await token.write.initialize();
+  await token.write.initialize([1, [token.address]]);
 }
 
 main()

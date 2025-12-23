@@ -19,7 +19,8 @@ describe('DataOracle', () => {
     // Deploy contract
     const contract = await viem.deployContract('DataOracle', []);
     dataOracle = contract;
-    await dataOracle.write.initialize([], {
+    await dataOracle.write.initialize(
+       [1, [owner.account.address]], {
        'account': owner.account.address
     });
     

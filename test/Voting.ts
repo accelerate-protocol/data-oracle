@@ -18,26 +18,11 @@ describe("DataOracle Voting Mechanism", function () {
     // Deploy contract
     const contract = await viem.deployContract('DataOracle', []);
     dataOracle = contract;
-    await dataOracle.write.initialize([], {
+    await dataOracle.write.initialize([
+       2, [user1.account.address, user2.account.address]
+    ], {
        'account': owner.account.address
     });
-
-    // Set threshold to 2 for testing
-    await dataOracle.write.setThreshold([2], {
-       account: owner.account.address
-    });
-    await dataOracle.write.grantRole([
-      await dataOracle.read.DATA_UPDATER_ROLE(),
-      user1.account.address],
-	{
-	  account: owner.account.address
-        });
-    await dataOracle.write.grantRole([
-      await dataOracle.read.DATA_UPDATER_ROLE(),
-      user2.account.address],
-	{
-	  account: owner.account.address
-        });
   });
 
   it("should record votes correctly and update data when threshold is met", async function () {
@@ -111,6 +96,28 @@ describe("DataOracle Voting Mechanism", function () {
     // Data should not be updated since vote values differ
     const [timestamp, data] = await dataOracle.read.getLastUpdate();
     expect(data).to.equal(0n);
+  });
+
+  it("test set threshold", async function () {
+    // User1 votes for data value 200
+    await dataOracle.write.setData([200], {
+       account: user1.account.address
+    });
+    expect(await dataOracle.read.voteCount()).to.equal(1n);
+    // Data should not be updated since vote values differ
+    let [timestamp, data] = await dataOracle.read.getLastUpdate();
+    expect(data).to.equal(0n);
+    await dataOracle.write.setThreshold([1], {
+       account: owner.account.address
+    });
+    expect(await dataOracle.read.voteCount()).to.equal(0n);
+    await dataOracle.write.setData([200], {
+       account: user1.account.address
+    });
+    expect(await dataOracle.read.voteCount()).to.equal(0n);
+    [timestamp, data] = await dataOracle.read.getLastUpdate();
+    expect(data).to.equal(200n);
+
   });
 
   it("Invalid threshold", async function () {
