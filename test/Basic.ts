@@ -68,4 +68,10 @@ describe('DataOracle', () => {
     assert.typeOf(timestamp, 'bigint');
     assert.equal(data, testData);
   });
+
+  it('should return version', async () => {
+    const version = await dataOracle.read.version();
+    assert.typeOf(version, 'string');
+  });
+
 });

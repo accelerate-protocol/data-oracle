@@ -205,4 +205,11 @@ contract DataOracle is  Initializable, AccessControlUpgradeable {
     function getLastUpdate() public view returns (uint256, uint256) {
         return (lastData.timestamp, lastData.data);
     }
+
+    /**
+     * @notice Return version
+     */
+    function version() public pure returns (string memory) {
+        return "20251205.0";
+    }
 }
