@@ -15,8 +15,8 @@ cleanup_and_exit() {
 echo "node started waiting...."
 sleep 3
 
-npx hardhat --network localhost run scripts/deploy-mock-erc20.ts
-npx hardhat --network localhost run scripts/deploy-data-oracle.ts
+npx hardhat --network localhost ignition deploy ignition/modules/MockERC20Deploy.ts
+npx hardhat --network localhost ignition deploy ignition/modules/DataOracleUpgradeable.ts 
 npx hardhat --network localhost test
 
 trap "cleanup_and_exit" INT  # Ctrl+C
