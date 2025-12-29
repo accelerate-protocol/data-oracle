@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-
+import {IDataOracle} from "./IDataOracle.sol";
 error AlreadyVoted(address);
 error InvalidThreshold();
 
@@ -18,7 +18,7 @@ error InvalidThreshold();
  *      before the threshold is reached the vote is invalid and the
  *      vote restarted.
  */
-contract DataOracle is  Initializable, AccessControlUpgradeable {
+contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
     /**
      * @notice Role for data updater
      */
