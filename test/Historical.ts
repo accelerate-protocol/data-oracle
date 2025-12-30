@@ -34,7 +34,7 @@ describe('DataOracle - Historical Functions', () => {
 
   it('should store historical data correctly', async () => {
     // Set first data
-    const testData1 = 0x68656c6c6fn; // "hello" in hex
+    const testData1 = 0x6865n * 10n**18n; // "hello" in hex
     const tx1 = await dataOracle.write.setData([testData1], {
       account: owner.account.address
     });
@@ -42,7 +42,7 @@ describe('DataOracle - Historical Functions', () => {
     await publicClient.waitForTransactionReceipt({ hash: tx1 });
     
     // Set second data
-    const testData2 = '0x776f726c64'; // "world" in hex
+    const testData2 = 0x776f72n * 10n**18n; // "world" in hex
     const tx2 = await dataOracle.write.setData([testData2], {
       account: owner.account.address
     });
@@ -60,9 +60,9 @@ describe('DataOracle - Historical Functions', () => {
 
   it('should handle multiple data sets with proper timestamps', async () => {
     // Clear existing data and set multiple values
-    const testData1 = 0x61n; // "a" in hex
-    const testData2 = 0x62n; // "b" in hex
-    const testData3 = 0x63n; // "c" in hex
+    const testData1 = 0x61n * 10n**18n; // "a" in hex
+    const testData2 = 0x62n * 10n**18n; // "b" in hex
+    const testData3 = 0x63n * 10n**18n; // "c" in hex
     
     // Set first data
     const tx1 = await dataOracle.write.setData([testData1], {
@@ -89,7 +89,7 @@ describe('DataOracle - Historical Functions', () => {
 
   it('should prevent unauthorized access to historical functions', async () => {
     // Try to set data with non-owner account - should fail
-    const testData = 0x74657374n; // "test" in hex
+    const testData = 0x74657n * 10n * 18n; // "test" in hex
     
     try {
       await dataOracle.write.setData([testData], {
@@ -102,8 +102,8 @@ describe('DataOracle - Historical Functions', () => {
   });
 
   it('should maintain data integrity across multiple updates', async () => {
-    const testData1 = 0x616263n; // "abc" in hex
-    const testData2 = 0x646566n; // "def" in hex
+    const testData1 = 0x616263n * 10n**18n; // "abc" in hex
+    const testData2 = 0x646566n * 10n**18n; // "def" in hex
     
     // Set first data
     const tx1 = await dataOracle.write.setData([testData1], {
@@ -137,9 +137,9 @@ describe('DataOracle - Historical Functions', () => {
     });
 
 
-    const testData = [ 0x68656c6c6fn, // "hello"
-      0x776f726c64n, // "world"
-      0x616263n
+    const testData = [ 0x68656n * 10n ** 18n, // "hello"
+      0x776f7n * 10n ** 18n, // "world"
+      0x6162n * 10n ** 18n
     ] // "abc"
     
     for(const element of [0n, 1n, 2n]) {

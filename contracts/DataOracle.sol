@@ -6,6 +6,10 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {IDataOracle} from "./IDataOracle.sol";
 error AlreadyVoted(address);
 error InvalidThreshold();
+error OutOfBounds();
+
+uint256 constant DEFAULT_MIN_DATA_VALUE = 1e10;
+uint256 constant DEFAULT_MAX_DATA_VALUE = 1e26;
 
 /**
  * @title DataOracle
@@ -116,6 +120,16 @@ contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
     uint256 public currentVoteValue;
 
     /**
+     * @notice min data value
+     */
+    uint256 public minDataValue;
+
+    /**
+     * @notice max data value
+     */
+    uint256 public maxDataValue;
+
+    /**
      * @notice initialize the contract.  Grants the
      * deployer the DEFAULT_ADMIN_ROLE but not the VOTER_ROLE.
      * @param _threshold Threshold value.
@@ -129,6 +143,8 @@ contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
             _grantRole(VOTER_ROLE, _voters[i]);
         }
         threshold = _threshold;
+	minDataValue = DEFAULT_MIN_DATA_VALUE;
+	maxDataValue = DEFAULT_MAX_DATA_VALUE;
     }
     /**
      * @notice Sets the threshold for the number of users required to
@@ -143,6 +159,23 @@ contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
     }
 
     /**
+     * @notice Set min data value
+     */
+    function setMinDataValue(uint256 _minDataValue) external onlyRole(DEFAULT_ADMIN_ROLE) {
+       minDataValue = _minDataValue;
+       resetVotes();
+     }
+
+    /**
+     * @notice Set max data value
+     */
+    function setMaxDataValue(uint256 _maxDataValue) external onlyRole(DEFAULT_ADMIN_ROLE) {
+       require(_maxDataValue >= minDataValue, OutOfBounds());
+       maxDataValue = _maxDataValue;
+       resetVotes();
+     }
+
+    /**
      * @notice Sets the timestamped data and stores it as a historical
      * record.  Only users with the VOTER_ROLE can call this
      * function.
@@ -150,6 +183,8 @@ contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
      */
 
     function setData(uint256 _data) external onlyRole(VOTER_ROLE) {
+        require(_data >= minDataValue, OutOfBounds());
+        require(_data <= maxDataValue, OutOfBounds());
         // If user has already voted, or
         // If this is the first vote for a new value, reset the vote tracking
         if (userVotes[proposalCount][msg.sender] ||

@@ -30,7 +30,7 @@ describe('DataOracle', () => {
   });
 
   it('should set data correctly', async () => {
-    const testData = 0x68656c6c6fn; // "hello" in hex
+    const testData = 0x68656n * 10n**18n;
     const tx = await dataOracle.write.setData([testData], {
       account: owner.account.address
     });
@@ -43,7 +43,7 @@ describe('DataOracle', () => {
   });
 
   it('should allow only owner to set data', async () => {
-    const testData = 0x776f726c64n; // "world" in hex
+    const testData = 0x776f726c64n * 10n**18n; // "world" in hex
     
     // Try to set data with non-owner account
     try {
@@ -57,7 +57,7 @@ describe('DataOracle', () => {
   });
 
   it('should return correct timestamp', async () => {
-    const testData = 0x666f6fn; // "foo" in hex
+    const testData = 0x666f6fn * 10n**18n; // "foo" in hex
     const tx = await dataOracle.write.setData([testData], {
       account: owner.account.address
     });
