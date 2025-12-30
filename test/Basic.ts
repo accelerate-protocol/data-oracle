@@ -38,7 +38,7 @@ describe('DataOracle', () => {
     await publicClient.waitForTransactionReceipt({ hash: tx });
     
     // Verify data was set
-    const [timestamp, data] = await dataOracle.read.getLastUpdate();
+    const data = await dataOracle.read.getLastData();
     assert.equal(data, testData);
   });
 
@@ -64,8 +64,7 @@ describe('DataOracle', () => {
     
     await publicClient.waitForTransactionReceipt({ hash: tx });
     
-    const [timestamp, data] = await dataOracle.read.getLastUpdate();
-    assert.typeOf(timestamp, 'bigint');
+    const data = await dataOracle.read.getLastData();
     assert.equal(data, testData);
   });
 

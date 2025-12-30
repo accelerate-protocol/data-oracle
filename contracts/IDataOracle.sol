@@ -10,7 +10,6 @@ interface IDataOracle {
     /**
      * @notice return last update value
      * @return timestamp  Timestamp of last value
-     * @return datq Return data
      */
-    function getLastUpdate() external returns (uint256, uint256);
+    function getLastData() external returns (uint256);
 }

@@ -50,7 +50,7 @@ describe('DataOracle - Historical Functions', () => {
     await publicClient.waitForTransactionReceipt({ hash: tx2 });
     
     // Check current data
-    const [currentTimestamp, currentData] = await dataOracle.read.getLastUpdate();
+    const currentData = await dataOracle.read.getLastData();
     assert.equal(currentData, testData2);
     
     // Verify historical data was stored
@@ -83,8 +83,7 @@ describe('DataOracle - Historical Functions', () => {
     await publicClient.waitForTransactionReceipt({ hash: tx3 });
     
     // Get current data
-    const [currentTimestamp, currentData] = await dataOracle.read.getLastUpdate();
-    assert.typeOf(currentTimestamp, 'bigint');
+    const currentData = await dataOracle.read.getLastData();
     assert.equal(currentData, testData3);
   });
 
@@ -112,7 +111,7 @@ describe('DataOracle - Historical Functions', () => {
     });
     await publicClient.waitForTransactionReceipt({ hash: tx1 });
     
-    const [timestamp1, data1] = await dataOracle.read.getLastUpdate();
+    const data1 = await dataOracle.read.getLastData();
     
     // Set second data
     const tx2 = await dataOracle.write.setData([testData2], {
@@ -120,13 +119,11 @@ describe('DataOracle - Historical Functions', () => {
     });
     await publicClient.waitForTransactionReceipt({ hash: tx2 });
     
-    const [timestamp2, data2] = await dataOracle.read.getLastUpdate();
+    const data2 = await dataOracle.read.getLastData();
     
     // Verify data integrity
     assert.equal(data1, testData1);
     assert.equal(data2, testData2);
-    assert.typeOf(timestamp1, 'bigint');
-    assert.typeOf(timestamp2, 'bigint');
   });
 
   it('test historical', async () => {

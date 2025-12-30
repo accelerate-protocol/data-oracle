@@ -199,11 +199,10 @@ contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
 
     /**
      * @notice Returns the last updated data.
-     * @return timestamp The timestamp of the last update.
      * @return data The data value of the last update.
      */
-    function getLastUpdate() external view returns (uint256, uint256) {
-        return (lastData.timestamp, lastData.data);
+    function getLastData() external view returns (uint256) {
+        return lastData.data;
     }
 
     /**

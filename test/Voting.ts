@@ -38,7 +38,7 @@ describe("DataOracle Voting Mechanism", function () {
     });
     expect(await dataOracle.read.voteCount()).to.equal(0n);
 
-    const [timestamp, data] = await dataOracle.read.getLastUpdate();
+    const data = await dataOracle.read.getLastData();
     expect(data).to.equal(100n);
   });
 
@@ -55,7 +55,7 @@ describe("DataOracle Voting Mechanism", function () {
     expect(await dataOracle.read.voteCount()).to.equal(0n);
 
     // Data should not be updated since vote values differ
-    const [timestamp, data] = await dataOracle.read.getLastUpdate();
+    const data = await dataOracle.read.getLastData();
     expect(data).to.equal(0n);
   });
 
@@ -73,7 +73,7 @@ describe("DataOracle Voting Mechanism", function () {
     expect(await dataOracle.read.voteCount()).to.equal(0n);
 
     // Data should be updated
-    const [timestamp, data] = await dataOracle.read.getLastUpdate();
+    const data = await dataOracle.read.getLastData();
     expect(data).to.equal(400n);
 
     // Vote count should be reset
@@ -94,7 +94,7 @@ describe("DataOracle Voting Mechanism", function () {
     expect(await dataOracle.read.voteCount()).to.equal(0n);
 
     // Data should not be updated since vote values differ
-    const [timestamp, data] = await dataOracle.read.getLastUpdate();
+    const data = await dataOracle.read.getLastData();
     expect(data).to.equal(0n);
   });
 
@@ -105,7 +105,7 @@ describe("DataOracle Voting Mechanism", function () {
     });
     expect(await dataOracle.read.voteCount()).to.equal(1n);
     // Data should not be updated since vote values differ
-    let [timestamp, data] = await dataOracle.read.getLastUpdate();
+    let data = await dataOracle.read.getLastData();
     expect(data).to.equal(0n);
     await dataOracle.write.setThreshold([1], {
        account: owner.account.address
@@ -115,7 +115,7 @@ describe("DataOracle Voting Mechanism", function () {
        account: user1.account.address
     });
     expect(await dataOracle.read.voteCount()).to.equal(0n);
-    [timestamp, data] = await dataOracle.read.getLastUpdate();
+    data = await dataOracle.read.getLastData();
     expect(data).to.equal(200n);
 
   });
