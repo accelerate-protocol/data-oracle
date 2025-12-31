@@ -75,12 +75,9 @@ export default defineConfig({
       accounts: [TESTNET_PRIVATE_KEY]
     }
   },
-  etherscan: {
-    apiKey: {
-      mainnet: ETHERSCAN_API_KEY,
-      goerli: ETHERSCAN_API_KEY,
-      bsc: ETHERSCAN_API_KEY,
-      bscTestnet: ETHERSCAN_API_KEY
-   },
+  verify: {
+    etherscan: {
+       apiKey: ETHERSCAN_API_KEY,
+    },
   },
 });

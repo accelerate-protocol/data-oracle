@@ -2,13 +2,17 @@ import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 const proxyModule = buildModule("DataOracleUpgradeableModule", (m) => {
   const proxyAdminOwner = m.getAccount(0);
-
   const dataOracle = m.contract("DataOracle");
-  m.call(dataOracle, "initialize", [3, [m.getAccount(0)]]);
+
+  const encodedFunctionCall = m.encodeFunctionCall(dataOracle,
+    "initialize", [
+    2, []
+  ]);
+
   const proxy = m.contract("TransparentUpgradeableProxy", [
     dataOracle,
     proxyAdminOwner,
-    "0x",
+    encodedFunctionCall,
   ]);
 
   const proxyAdminAddress = m.readEventArgument(
