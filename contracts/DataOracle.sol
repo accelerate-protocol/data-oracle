@@ -139,7 +139,7 @@ contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
         address[] calldata _voters) external initializer {
         __AccessControl_init();
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-	for (uint i = 0; i < _voters.length; i++) {
+	for (uint256 i = 0; i < _voters.length; ++i) {
             _grantRole(VOTER_ROLE, _voters[i]);
         }
         threshold = _threshold;
@@ -160,6 +160,7 @@ contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
 
     /**
      * @notice Set min data value
+     * @param _minDataValue - set minimum data
      */
     function setMinDataValue(uint256 _minDataValue) external onlyRole(DEFAULT_ADMIN_ROLE) {
        minDataValue = _minDataValue;
@@ -168,9 +169,10 @@ contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
 
     /**
      * @notice Set max data value
+     * @param _maxDataValue - set maximum data
      */
     function setMaxDataValue(uint256 _maxDataValue) external onlyRole(DEFAULT_ADMIN_ROLE) {
-       require(_maxDataValue >= minDataValue, OutOfBounds());
+       require(!(_maxDataValue < minDataValue), OutOfBounds());
        maxDataValue = _maxDataValue;
        resetVotes();
      }
@@ -183,8 +185,8 @@ contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
      */
 
     function setData(uint256 _data) external onlyRole(VOTER_ROLE) {
-        require(_data >= minDataValue, OutOfBounds());
-        require(_data <= maxDataValue, OutOfBounds());
+        require(!(_data < minDataValue), OutOfBounds());
+        require(!(_data > maxDataValue), OutOfBounds());
         // If user has already voted, or
         // If this is the first vote for a new value, reset the vote tracking
         if (userVotes[proposalCount][msg.sender] ||
@@ -242,8 +244,9 @@ contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
 
     /**
      * @notice Return version
+     * @return Version
      */
     function version() external pure returns (string memory) {
-        return "20251205.0";
+        return "20251231.0";
     }
 }

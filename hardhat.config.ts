@@ -80,4 +80,12 @@ export default defineConfig({
        apiKey: ETHERSCAN_API_KEY,
     },
   },
+  ignition: {
+    strategyConfig: {
+      create2: {
+        // To learn more about salts, see the CreateX documentation
+        salt: "0x0000000000000000000000000000000000000000000000000000000000000000",
+      },
+    },
+  },
 });

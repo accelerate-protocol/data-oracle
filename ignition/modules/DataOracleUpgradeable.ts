@@ -26,4 +26,12 @@ const proxyModule = buildModule("DataOracleUpgradeableModule", (m) => {
     return { proxyAdmin, proxy };
 });
 
-export default proxyModule;
+const dataOracleModule = buildModule("DataOracleModule", (m) => {
+  const { proxyAdmin, proxy } = m.useModule(proxyModule);
+
+  const demo = m.contractAt("DataOracle", proxy);
+
+  return { demo, proxy, proxyAdmin };
+});
+
+export default dataOracleModule;
