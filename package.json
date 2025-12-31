@@ -33,6 +33,7 @@
   "dependencies": {
     "@openzeppelin/contracts-upgradeable": "^5.4.0",
     "chai": "^6.2.1",
+    "dotenv": "^17.2.3",
     "solhint": "^6.0.1",
     "sollint": "^0.0.0"
   },
