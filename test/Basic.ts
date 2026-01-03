@@ -58,6 +58,12 @@ describe('DataOracle', () => {
 
   it('should return correct timestamp', async () => {
     const testData = 0x666f6fn * 10n**18n; // "foo" in hex
+    await dataOracle.write.setMaxUpPercent([0n], {
+      account: owner.account.address
+    });
+    await dataOracle.write.setMaxDownPercent([0n], {
+      account: owner.account.address
+    });
     const tx = await dataOracle.write.setData([testData], {
       account: owner.account.address
     });

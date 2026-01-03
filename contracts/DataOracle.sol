@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.33;
 
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -8,8 +8,8 @@ error AlreadyVoted(address);
 error InvalidThreshold();
 error OutOfBounds();
 
-uint256 constant DEFAULT_MIN_DATA_VALUE = 1e10;
-uint256 constant DEFAULT_MAX_DATA_VALUE = 1e26;
+uint16 constant DEFAULT_MAX_UP_PERCENT = 80;
+uint16 constant DEFAULT_MAX_DOWN_PERCENT = 80;
 
 /**
  * @title DataOracle
@@ -101,7 +101,7 @@ contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
     /**
      * @notice Threshold for number of users required to set data
      */
-    uint256 public threshold;
+    uint16 public threshold;
 
     /**
      * @notice Storage to track which users have called setData
@@ -120,14 +120,16 @@ contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
     uint256 public currentVoteValue;
 
     /**
-     * @notice min data value
+     * @notice max up percent from previous value if non-zero and if
+     * historicalCount is > 0
      */
-    uint256 public minDataValue;
+    uint16 public maxUpPercent;
 
     /**
-     * @notice max data value
+     * @notice max down percent from previous value if non-zero and if
+     * historicalCount is > 0
      */
-    uint256 public maxDataValue;
+    uint16 public maxDownPercent;
 
     /**
      * @notice initialize the contract.  Grants the
@@ -135,7 +137,7 @@ contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
      * @param _threshold Threshold value.
      * @param _voters list of voters. may be modified with access control
      */
-    function initialize(uint256 _threshold,
+    function initialize(uint16 _threshold,
         address[] calldata _voters) external initializer {
         __AccessControl_init();
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -143,8 +145,8 @@ contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
             _grantRole(VOTER_ROLE, _voters[i]);
         }
         threshold = _threshold;
-	minDataValue = DEFAULT_MIN_DATA_VALUE;
-	maxDataValue = DEFAULT_MAX_DATA_VALUE;
+	maxUpPercent = DEFAULT_MAX_UP_PERCENT;
+	maxDownPercent = DEFAULT_MAX_DOWN_PERCENT;
     }
     /**
      * @notice Sets the threshold for the number of users required to
@@ -152,28 +154,28 @@ contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
      * Changing threshold resets votes.
      * @param _threshold The new threshold value.
      */
-    function setThreshold(uint256 _threshold) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setThreshold(uint16 _threshold) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_threshold > 0, InvalidThreshold());
         threshold = _threshold;
 	resetVotes();
     }
 
     /**
-     * @notice Set min data value
-     * @param _minDataValue - set minimum data
+     * @notice Set max down percent - disable check if zero
+     * @param _maxDownPercent - set minimum data
      */
-    function setMinDataValue(uint256 _minDataValue) external onlyRole(DEFAULT_ADMIN_ROLE) {
-       minDataValue = _minDataValue;
+    function setMaxDownPercent(uint16 _maxDownPercent) external onlyRole(DEFAULT_ADMIN_ROLE) {
+       require(!(_maxDownPercent > 100), OutOfBounds());
+       maxDownPercent = _maxDownPercent;
        resetVotes();
      }
 
     /**
-     * @notice Set max data value
-     * @param _maxDataValue - set maximum data
+     * @notice Set max up percent - disable check if zero
+     * @param _maxUpPercent - set maximum data
      */
-    function setMaxDataValue(uint256 _maxDataValue) external onlyRole(DEFAULT_ADMIN_ROLE) {
-       require(!(_maxDataValue < minDataValue), OutOfBounds());
-       maxDataValue = _maxDataValue;
+    function setMaxUpPercent(uint16 _maxUpPercent) external onlyRole(DEFAULT_ADMIN_ROLE) {
+       maxUpPercent = _maxUpPercent;
        resetVotes();
      }
 
@@ -185,8 +187,17 @@ contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
      */
 
     function setData(uint256 _data) external onlyRole(VOTER_ROLE) {
-        require(!(_data < minDataValue), OutOfBounds());
-        require(!(_data > maxDataValue), OutOfBounds());
+        if (historicalCount > 0) {
+	   uint256 currentData = lastData.data;
+	   if (_data > currentData && maxUpPercent > 0) {
+	     require(_data < currentData + maxUpPercent * currentData / 100,
+	             OutOfBounds());
+	   } else if (_data < currentData && maxDownPercent > 0) {
+	     require(_data > currentData - maxDownPercent * currentData / 100,
+	             OutOfBounds());
+	   }
+        }
+
         // If user has already voted, or
         // If this is the first vote for a new value, reset the vote tracking
         if (userVotes[proposalCount][msg.sender] ||

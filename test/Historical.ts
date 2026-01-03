@@ -1,5 +1,5 @@
 // test/DataOracle.Historical.test.js
-import { before, describe, it } from "node:test";
+import { beforeEach, describe, it } from "node:test";
 import { assert } from 'chai';
 import hre from "hardhat";
 import { encodeFunctionData, parseEther } from 'viem';
@@ -13,7 +13,7 @@ describe('DataOracle - Historical Functions', () => {
   let user;
   let publicClient;
 
-  before(async () => {
+  beforeEach(async () => {
     // Get accounts
     const accounts = await viem.getWalletClients();
     [owner, user] = accounts;
@@ -28,7 +28,12 @@ describe('DataOracle - Historical Functions', () => {
     ], {
        'account': owner.account.address
     });
-
+    await dataOracle.write.setMaxUpPercent([0n], {
+      account: owner.account.address
+    });
+    await dataOracle.write.setMaxDownPercent([0n], {
+      account: owner.account.address
+    });
     publicClient = await viem.getPublicClient();
   });
 
@@ -127,29 +132,19 @@ describe('DataOracle - Historical Functions', () => {
   });
 
   it('test historical', async () => {
-    // Clear any existing data and set fresh data
-    // Deploy contract
-    const contract = await viem.deployContract('DataOracle', []);
-    await contract.write.initialize([
-      1, [owner.account.address]
-    ], {
-       'account': owner.account.address
-    });
-
-
     const testData = [ 0x68656n * 10n ** 18n, // "hello"
       0x776f7n * 10n ** 18n, // "world"
       0x6162n * 10n ** 18n
     ] // "abc"
     
     for(const element of [0n, 1n, 2n]) {
-      await contract.write.setData([testData[element]], {
+      await dataOracle.write.setData([testData[element]], {
         account: owner.account.address
       });
     }
 
     for(const element of [0n, 1n, 2n]) {
-      const [timestamp, data] = await contract.read.historicalData([element]);
+      const [timestamp, data] = await dataOracle.read.historicalData([element]);
       assert.equal(data, testData[element]);
       assert.typeOf(timestamp, 'bigint');
     }
