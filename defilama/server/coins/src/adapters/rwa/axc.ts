@@ -26,7 +26,7 @@ const CHAINS: ChainTokens[] = [
     }
 ];
 
-export async function asseto(timestamp: number): Promise<Write[]> {
+export async function axc(timestamp: number): Promise<Write[]> {
     const writes: Write[] = [];
 
     for (const { chain, tokens } of CHAINS) {
