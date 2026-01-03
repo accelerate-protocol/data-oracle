@@ -20,7 +20,7 @@ const CHAINS: ChainTokens[] = [
             {
                 name: "GIFT",
                 tokenAddress: "0x6Eca9D3B1ef79F5b45572fb8204835C6A4502bE9",
-                pricerAddress: "0x70401DcC134dBFB06772A16f226a0D086B5F8ad6",
+                pricerAddress: "0xCcaCA7A3b472843016E98db8EAF921A7a770f9eA",
             },
         ],
     }
