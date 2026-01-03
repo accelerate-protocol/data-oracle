@@ -10,7 +10,7 @@ error OutOfBounds();
 
 uint16 constant DEFAULT_MAX_UP_PERCENT = 80;
 uint16 constant DEFAULT_MAX_DOWN_PERCENT = 80;
-
+uint256 constant DEFAULT_BOUNDS_CUTOFF = 10**8;
 /**
  * @title DataOracle
  * @author AXC
@@ -21,6 +21,10 @@ uint16 constant DEFAULT_MAX_DOWN_PERCENT = 80;
  *      the data to a different value or attempts to double vote
  *      before the threshold is reached the vote is invalid and the
  *      vote restarted.
+ *
+ *      This oracle also sanity checks the data and can limit the change
+ *      in value to a percent of the previous value provided that the current
+ *      value is above the cutoff
  */
 contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
     /**
@@ -132,6 +136,12 @@ contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
     uint16 public maxDownPercent;
 
     /**
+     * @notice bounds cutoff do not do relative checking if data is below tihs
+     * value.  This prevents the oracle from freezing if data is too low.
+     */
+    uint256 public boundsCutoff;
+
+    /**
      * @notice initialize the contract.  Grants the
      * deployer the DEFAULT_ADMIN_ROLE but not the VOTER_ROLE.
      * @param _threshold Threshold value.
@@ -147,6 +157,7 @@ contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
         threshold = _threshold;
 	maxUpPercent = DEFAULT_MAX_UP_PERCENT;
 	maxDownPercent = DEFAULT_MAX_DOWN_PERCENT;
+	boundsCutoff = DEFAULT_BOUNDS_CUTOFF;
     }
     /**
      * @notice Sets the threshold for the number of users required to
@@ -180,15 +191,25 @@ contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
      }
 
     /**
+     * @notice Set bounds cutoff - disable check if current value falls below bounds
+     * @param _boundsCutoff - set maximum data
+     */
+    function setBoundsCutoff(uint256 _boundsCutoff) external onlyRole(DEFAULT_ADMIN_ROLE) {
+       boundsCutoff = _boundsCutoff;
+       resetVotes();
+     }
+
+    /**
      * @notice Sets the timestamped data and stores it as a historical
      * record.  Only users with the VOTER_ROLE can call this
-     * function.
+     * function.  Revert if up or down id outside of percentage and
+     * is above bounds cutoff
      * @param _data The data to be set.
      */
 
     function setData(uint256 _data) external onlyRole(VOTER_ROLE) {
-        if (historicalCount > 0) {
-	   uint256 currentData = lastData.data;
+        uint256 currentData = lastData.data;
+        if (historicalCount > 0 && currentData > boundsCutoff) {
 	   if (_data > currentData && maxUpPercent > 0) {
 	     require(_data < currentData + maxUpPercent * currentData / 100,
 	             OutOfBounds());

@@ -130,5 +130,26 @@ describe("DataOracle Voting Mechanism", function () {
      // expect to fail
     };
   });
+
+  it("should prevent users without VOTER_ROLE from voting", async function () {
+    // Try to set data with a user that does not have the VOTER_ROLE
+    try {
+        await dataOracle.write.setData([100n * 10n**18n], {
+            account: user3.account.address
+        });
+        assert.fail('Should have reverted');
+    } catch (error) {
+        // Expected to fail
+    }
+  });
+
+  it("should allow users with VOTER_ROLE to vote", async function () {
+    // Set data with a user that has the VOTER_ROLE
+    await dataOracle.write.setData([100n * 10n**18n], {
+        account: user1.account.address
+    });
+    const voteCount = await dataOracle.read.voteCount();
+    expect(voteCount).to.equal(1n);
+  });
 });
 
