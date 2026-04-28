@@ -131,6 +131,18 @@ describe("DataOracle Voting Mechanism", function () {
     };
   });
 
+  it("reject zero threshold at initialize same as setThreshold", async function () {
+    const fresh = await viem.deployContract("DataOracle", []);
+    try {
+      await fresh.write.initialize([0, [user1.account.address]], {
+        account: owner.account.address,
+      });
+      assert.fail("should have reverted");
+    } catch (_) {
+      // InvalidThreshold expected
+    }
+  });
+
   it("should prevent users without VOTER_ROLE from voting", async function () {
     // Try to set data with a user that does not have the VOTER_ROLE
     try {

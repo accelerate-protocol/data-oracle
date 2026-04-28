@@ -149,6 +149,7 @@ contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
      */
     function initialize(uint16 _threshold,
         address[] calldata _voters) external initializer {
+        require(_threshold > 0, InvalidThreshold());
         __AccessControl_init();
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 	for (uint256 i = 0; i < _voters.length; ++i) {
@@ -186,6 +187,7 @@ contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
      * @param _maxUpPercent - set maximum data
      */
     function setMaxUpPercent(uint16 _maxUpPercent) external onlyRole(DEFAULT_ADMIN_ROLE) {
+       require(!(_maxUpPercent > 100), OutOfBounds());
        maxUpPercent = _maxUpPercent;
        resetVotes();
      }

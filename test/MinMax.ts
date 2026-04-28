@@ -93,6 +93,16 @@ describe("DataOracle Min Max", function () {
     }
   });
 
+  it("should revert when max up percent over 100", async function () {
+    try {
+      await dataOracle.write.setMaxUpPercent([101n], {
+        account: owner.account.address,
+      });
+      assert.fail("should have been reverted");
+    } catch (_) {
+    }
+  });
+
   it("should set percent up", async function () {
     const data = 10n**18n;
     await dataOracle.write.setData([data], {

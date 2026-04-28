@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.33;
 
 /**
  * @title IDataOracle
@@ -9,7 +9,7 @@ pragma solidity ^0.8.24;
 interface IDataOracle {
     /**
      * @notice return last update value
-     * @return timestamp  Timestamp of last value
+     * @return value - last stored data
      */
-    function getLastData() external returns (uint256);
+    function getLastData() external view returns (uint256);
 }
