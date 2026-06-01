@@ -1,0 +1,6 @@
+{
+  "DataOracleUpgradeableModule#DataOracle": "0x64b398Dd014417811A1bAce4f7FE2dAF385c1114",
+  "DataOracleUpgradeableModule#TransparentUpgradeableProxy": "0x98E295C5DECBA783ad0ad4824c91Cd682caef62e",
+  "DataOracleUpgradeableModule#ProxyAdmin": "0x653cF7247f3655F9448A1C90E46662d33D575DD2",
+  "DataOracleModule#DataOracle": "0x98E295C5DECBA783ad0ad4824c91Cd682caef62e"
+}

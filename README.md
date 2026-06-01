@@ -34,6 +34,15 @@ docker compose build
 docker compose up
 ```
 
+## Deployment
+
+An example deployment to bscTestnet with the deployment id GYTW would
+be as follows
+
+```
+npx hardhat ignition --network bscTestnet deploy --deployment-id GYTW ignition/modules/DataOracleUpgradeable.ts
+```
+
 ## Usage
 
 * **Initialize:** Deploy the contract and call the initialize function to set the threshold and grant the VOTER_ROLE to relevant accounts.
