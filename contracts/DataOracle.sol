@@ -3,6 +3,7 @@ pragma solidity ^0.8.33;
 
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IDataOracle} from "./IDataOracle.sol";
 error AlreadyVoted(address);
 error InvalidThreshold();
@@ -26,7 +27,7 @@ uint256 constant DEFAULT_BOUNDS_CUTOFF = 10**8;
  *      in value to a percent of the previous value provided that the current
  *      value is above the cutoff
  */
-contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
+contract DataOracle is IDataOracle, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     /**
      * @notice Role for data updater
      */
@@ -281,4 +282,10 @@ contract DataOracle is  IDataOracle, Initializable, AccessControlUpgradeable {
     function version() external pure returns (string memory) {
         return "20251231.0";
     }
+
+    /**
+     * @notice Authorize upgrade to new implementation. Only admin can upgrade.
+     * @param newImplementation Address of the new implementation.
+     */
+    function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
 }

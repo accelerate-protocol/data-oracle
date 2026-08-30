@@ -4,14 +4,16 @@ import dataOracleModule from "./DataOracleUpgradeable.ts"
 const upgradeModule = buildModule("UpgradeModule", (m) => {
   const proxyAdminOwner = m.getAccount(0);
 
-  const { proxyAdmin, proxy } = m.useModule(dataOracleModule);
+  const { proxy } = m.useModule(dataOracleModule);
 
   const demoV2 = m.contract("DataOracleV2");
-  m.call(proxyAdmin, "upgradeAndCall", [proxy, demoV2, "0x"], {
+  const demo = m.contractAt("DataOracle", proxy);
+
+  m.call(demo, "upgradeToAndCall", [demoV2, "0x"], {
     from: proxyAdminOwner,
   });
 
-  return { proxyAdmin, proxy };
+  return { proxy };
 });
 
 export default upgradeModule;
