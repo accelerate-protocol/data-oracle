@@ -1,4 +1,5 @@
 import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
+import hardhatIgnitionPlugin from "@nomicfoundation/hardhat-ignition";
 import hardhatViem from "@nomicfoundation/hardhat-viem";
 import hardhatViemAssertions from "@nomicfoundation/hardhat-viem-assertions";
 import hardhatNodeTestRunner from "@nomicfoundation/hardhat-node-test-runner";
@@ -20,14 +21,15 @@ export default defineConfig({
     hardhatViemAssertions,
     hardhatNodeTestRunner,
     hardhatNetworkHelpers,
+    hardhatIgnitionPlugin
   ],
   solidity: {
     profiles: {
       default: {
-        version: "0.8.33",
+        version: "0.8.34",
       },
       production: {
-        version: "0.8.33",
+        version: "0.8.34",
         settings: {
           optimizer: {
             enabled: true,

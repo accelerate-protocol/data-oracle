@@ -1,6 +1,6 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
-const proxyModule = buildModule("DataOracleUpgradeableModule", (m) => {
+export default buildModule("DataOracleUpgradeableModule", (m) => {
   const dataOracle = m.contract("DataOracle");
 
   const encodedFunctionCall = m.encodeFunctionCall(dataOracle,
@@ -13,15 +13,5 @@ const proxyModule = buildModule("DataOracleUpgradeableModule", (m) => {
     encodedFunctionCall,
   ]);
 
-    return { proxy };
+    return { proxy, dataOracle };
 });
-
-const dataOracleModule = buildModule("DataOracleModule", (m) => {
-  const { proxy } = m.useModule(proxyModule);
-
-  const demo = m.contractAt("DataOracle", proxy);
-
-  return { demo, proxy };
-});
-
-export default dataOracleModule;
